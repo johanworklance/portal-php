@@ -11,7 +11,7 @@
 <body class="<?php if($archivoActual=='/portal/index.php'){echo 'bg';}?>">
 
               
-<?php if($archivoActual =='/portal/admin.php'):?>
+<?php if($archivoActual =='/portal/admin.php' || $archivoActual =='/portal/editar.php'):?>
 <header>
    <a href="admin.php" class="logo">
       <i class="fas fa-fire"></i>
@@ -22,13 +22,14 @@
 
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
-          
+          <?php if($archivoActual != '/portal/editar.php'):?>
           <li class="nav-item">
             <a class="nav-link" href="#">Agregar <i class="fas fa-plus-square mas"></i></a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="editar.php">Editar <i class="fas fa-edit"></i></a>
           </li>
+          <?php endif;?>
           <!--<li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               Dropdown

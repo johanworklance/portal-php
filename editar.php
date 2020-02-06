@@ -2,6 +2,7 @@
 session_start();//con el metodo aqui podremos acceder a las variables SESSION que vienen del login.php
 require 'lib/errores.php';
 require 'lib/config.php'; 
+require 'lib/validarFoto.php';
     
 spl_autoload_register(function($clase){
     require_once("lib/$clase.php");
@@ -63,23 +64,18 @@ $db->liberar();//creo que se uso para liberar espacio para la siguiente consulta
                <?php
                     $e_id= $_GET['editar'];
               
-                    $db->preparar("SELECT nombre,apellido,email,telefono,direccion,edad,ciudad, departamento,codigoPostal FROM usuarios WHERE idUsuario= ? ");
+                    $db->preparar("SELECT nombre,email,telefono,direccion,edad,ciudad, departamento,codigoPostal FROM usuarios WHERE idUsuario= ? ");
               
                     $db->prep()->bind_param('i',$_GET['editar']);
                     $db->ejecutar();
-                    $db->prep()->bind_result($enombre,$eapellido,$eemail,$etelefono,$edireccion, $eedad, $eciudad, $edepartamento,$ecodigoPostal);
+                    $db->prep()->bind_result($enombre,$eemail,$etelefono,$edireccion, $eedad, $eciudad, $edepartamento,$ecodigoPostal);
                     $db->resultado();
                     $db->liberar();
                ?>
             
-              <form action="" method="post" role="form" enctype="multipart/form-data"><!--enctype para que pueda recibir imagenes-->
+              <form action="actualizar.php" method="post" role="form" enctype="multipart/form-data"><!--enctype para que pueda recibir imagenes-->
                  <h2 class="text-center">Actualizar</h2>
-                  <div class="form-group row">
-                      <input type="text" class="form-control col-md-7 col-centrar" id="nombre" name="nombre" placeholder="<?php echo $enombre;?>">
-                  </div>
-                  <div class="form-group row">
-                      <input type="text" class="form-control col-md-7 col-centrar" id="apellido" name="apellido" placeholder="<?php echo $eapellido;?>">
-                  </div>
+                 
                   <div class="form-group row">
                     
                       <input type="text" class="form-control col-md-7 col-centrar" id="usuario" name="email" placeholder="<?php echo $eemail;?>">
@@ -118,6 +114,12 @@ $db->liberar();//creo que se uso para liberar espacio para la siguiente consulta
                      <label for="foto" class="col-md-12 text-center">Foto de perfil</label>
                       <input type="file" class="form-control col-md-7 col-centrar" name="foto">
                   </div>
+                  <div class="form-group row">
+                      <input type="hidden" class="form-control col-md-7 col-centrar" id="id" name="id" value="<?php echo $e_id;?>">
+                  </div>
+                  <div class="form-group row">
+                      <input type="hidden" class="form-control col-md-7 col-centrar" name="enombre" value="<?php echo $enombre;?>">
+                  </div>
                   
                   <div class="form-group row">
                       <div class="col-centrar">
@@ -130,12 +132,64 @@ $db->liberar();//creo que se uso para liberar espacio para la siguiente consulta
                 </form>
           </div>
       </div>
+      <?php elseif(isset($_GET['confirEliminar']))://originalmente solo ponia que si habia valor confiEliminar en el metodo get, pero me mandaba erroe de undefined index, asi que use el isset?>
+      <div class="row">
+          <div class="col-5 col-centrar">
+          <div class="caja text-center">
+              <h2>¿Seguro desear eliminar a este usuario?</h2>
+              <a class="btn btn-danger" href='<?php echo "editar.php?eliminar={$_GET['confirEliminar']}";?>'>Si</a>
+              <a class="btn btn-info" href='editar.php'>No</a>
+          </div> 
+          </div>
+      </div>
+      <?php elseif(isset($_GET['eliminar']))://originalmente solo ponia que si habia valor confiEliminar en el metodo get, pero me mandaba erroe de undefined index, asi que use el isset?>
+      <div class="row">
+          <div class="col-5 col-centrar">
+          <div class="caja text-center">
+             
+              <?php 
+              $eliminar= $_GET['eliminar'];
+              
+              
+              
+                    $db->preparar("SELECT nombre FROM usuarios WHERE idUsuario= ? ");
+              
+                    $db->prep()->bind_param('i',$eliminar);
+                    $db->ejecutar();
+                    $db->prep()->bind_result($name);
+                    $db->resultado();
+                    $db->liberar();
+              
+              
+              
+              $db->preparar("DELETE FROM usuarios WHERE idUsuario= ? ");
+              
+                    $db->prep()->bind_param('i',$eliminar);
+                    $db->ejecutar();
+              
+                    if($db->filaAfectada()>0){
+                        header("Refresh:5; url=editar.php");
+                        echo "<h4>Eliminacion completada completada, seras redirrecionado en 5 s, {$db->filaAfectada()} registro afectado. </h4>";
+                        borrarCarpetas("fotos/$name",true);//borramos la carpeta de la foto del usuario
+                    }
+                    $db->liberar();
+              ?>
+          </div> 
+          </div>
+      </div>
       <?php else:?>
        <div class="row">
            <div class="col-md-12">
                <div class="caja">
                    <div class="caja-cabecera">
+                     <div class="row" style="align-items:center;padding:0px 10px;">
                       <h3><i class="fas fa-users"></i> Edita o elimina algún usuario</h3>
+                      
+                          <form class="form-inline col-4 ml-auto" id="busqueda" method="get" style="justify-content: flex-end;">
+                            <input name="busqueda" class="form-control mr-sm-2" type="search" placeholder="Parametro..." aria-label="Search">
+                            <button class="btn btn-primary my-2 my-sm-0" type="submit">Buscar</button>
+                          </form>
+                        </div>
                    </div>
                    <hr>
                    <div class="caja-cuerpo">
@@ -158,11 +212,83 @@ $db->liberar();//creo que se uso para liberar espacio para la siguiente consulta
                           </thead>
                           <tbody>
                            <?php 
-                              $db->preparar("SELECT idUsuario,CONCAT (nombre,' ',apellido) AS nombreCompleto,email,cedula,telefono,direccion,edad,ciudad,departamento,codigoPostal,fecha FROM usuarios ORDER BY fecha");
+                              if(isset($_GET['busqueda'])){//el input de tipo submit, envia datos por el metodo get, si enviamos algo haremos la consulta con los datos pasados por el campo de la busquedad, de lo contrario, usaremos la consulta general del else
+                                  if(empty($_GET['busqueda'])){
+                                      trigger_error("No puedes dejar vacio el campo de busqueda.",E_USER_ERROR);
+                                      exit;
+                                  }
+                                  $consulta="SELECT idUsuario,CONCAT (nombre,' ',apellido) AS nombreCompleto,email,cedula,telefono,direccion,edad,ciudad,departamento,codigoPostal,fecha FROM usuarios WHERE nombre LIKE";
+                                  
+                                  $busqueda= explode(" ",$_GET['busqueda']);
+                                 
+                                  
+                                  for($i=0; $i< count($busqueda);$i++){//recorremos el array que creamos con el metodo explode con los datos que sacamos del metodo get busquedad, ejemplo "johan carla", entonces preguntamos primer que el campo no este vacio, luego si estamos en el indice 0 es decir johan para que de una vez la consulta sume "LIKE 'johan'", iteramos ahora i vale 1 entonces estamos en carla asi quedaria la consulta como "LIKE 'johan' OR nombre LIKE 'carla'
+                                      if($busqueda[$i]!=''){
+                                          if($i!=0){
+                                              $consulta.=" OR nombre LIKE";
+                                          }
+                                          $consulta.=" '%{$busqueda[$i]}%'";
+                                      }
+                                  }
+                                  
+                                  $consulBusqueda= "SELECT COUNT(idUsuario) FROM usuarios WHERE nombre LIKE";
+                                  for($i=0; $i< count($busqueda);$i++){
+                                      if($busqueda[$i]!=''){
+                                          if($i!=0){
+                                              $consulBusqueda.=" OR nombre LIKE";
+                                          }
+                                          $consulBusqueda.=" '%{$busqueda[$i]}%'";
+                                      }
+                                  }
+                                  $db->preparar($consulBusqueda);
+                                        $db->ejecutar();
+                                        $db->prep()->bind_result($contador);
+                                          $db->resultado();
+                                          $db->liberar();
+                                        $datosPorPagina=2;
+
+                                          $paginas=ceil($contador/$datosPorPagina);//redondea haci arriba
+                                          $pagina= (isset($_GET['pagina'])) ? (int)$_GET['pagina']:1;//if ternario usamos el ? para indicar lo que sucedera si es true y el : para cuando es false, el (int) fuerza a la variable a ser un interger, si no mandara nada el metodo get devolvemos 1
+
+                                          $iniciar= ($pagina-1)*$datosPorPagina;
+                                  $consulta.=" ORDER BY fecha LIMIT $iniciar,$datosPorPagina";
+
+                                  
+                            }else{
+                                      $db->preparar("SELECT COUNT(idUsuario) FROM usuarios ");
+                                        $db->ejecutar();
+                                        $db->prep()->bind_result($contador);
+                                          $db->resultado();
+                                          $db->liberar();
+                                          $datosPorPagina=2;
+
+                                          $paginas=ceil($contador/$datosPorPagina);//redondea haci arriba
+                                          $pagina= (isset($_GET['pagina'])) ? (int)$_GET['pagina']:1;//if ternario usamos el ? para indicar lo que sucedera si es true y el : para cuando es false, el (int) fuerza a la variable a ser un interger, si no mandara nada el metodo get devolvemos 1
+
+                                          $iniciar= ($pagina-1)*$datosPorPagina;
+
+                                          $consulta="SELECT idUsuario,CONCAT (nombre,' ',apellido) AS nombreCompleto,email,cedula,telefono,direccion,edad,ciudad,departamento,codigoPostal,fecha FROM usuarios ORDER BY fecha LIMIT $iniciar,$datosPorPagina";
+                                  }
+                              
+                              
+                              
+                              
+                              
+                              
+                              $db->preparar($consulta);
                                 $db->ejecutar();
                                 $db->prep()->bind_result($dbid,$dbnombreCompleto,$dbemail,$dbcedula,$dbtelefono,$dbdireccion,$dbedad,$dbciudad,$dbdepartamento,$dbcodigoPostal,$dbfecha);
                               
-                                $conteo=0;
+                              
+                              if(isset($_GET['busqueda'])){
+                                  if($contador>1){
+                                      echo "<h3>$contador resultados encontrados</h3>";
+                                  }else{
+                                      echo "<h3>$contador resultado encontrado</h3>";
+                                  }
+                              }
+                              
+                                $conteo=$iniciar;
                                 while($db->resultado()){
                                     $conteo++;
                                     echo "<tr>
@@ -177,10 +303,11 @@ $db->liberar();//creo que se uso para liberar espacio para la siguiente consulta
                                             <td>$dbdepartamento</td>
                                             <td>$dbcodigoPostal</td>
                                             <td>".date("d/m/Y",$dbfecha)."</td>
-                                            <td><a class='btn btn-success' href='editar.php?editar=$dbid'><i class='fas fa-edit'></i></a></td>
-                                            <td><a class='btn btn-danger' href='editar.php?eliminar=$dbid'><i class='fas fa-trash-alt'></i></a></td>
+                                            <td style='padding:0!important;' class='text-center'><a class='btn btn-success acciones' href='editar.php?editar=$dbid'><i class='fas fa-edit'></i></a>
+                                            <a class='btn btn-danger acciones' href='editar.php?confirEliminar=$dbid'><i class='fas fa-trash-alt'></i></a></td>
                                             
-                                        </tr>";
+                                            
+                                        </tr>";//cpn el editar.php?editar = a algo enviamos datos por el metodo get
     
                                 }
                               $db->liberar();//solo liberar despues de haber usado las variables que asignamos con los datos de la BD
@@ -188,7 +315,47 @@ $db->liberar();//creo que se uso para liberar espacio para la siguiente consulta
                             
                           </tbody>
                         </table>
-                       
+                       <?php
+                       $anterior=($pagina-1);
+                       $siguiente=($pagina+1);
+                       if(isset($_GET['busqueda'])){
+                           $pagAnterior= "?pagina=$anterior&busqueda={$_GET['busqueda']}";//recordar que por el metodo get se pueden enviar parametros para jugar con ellos, aqui mantendremos los valores de la busqueda
+                           $pagSiguiente= "?pagina=$siguiente&busqueda={$_GET['busqueda']}";
+                       }else{
+                           $pagAnterior= "?pagina=$anterior";
+                           $pagSiguiente= "?pagina=$siguiente";
+                       }
+                       ?>
+                       <nav>
+                          <ul class="pagination">
+                           <?php if(!($pagina<=1)):?>
+                            <li class="page-item"><a class="page-link" href='<?php echo $pagAnterior?>'>Anterior</a></li>
+                            <?php endif;?>
+                            <?php 
+                              if(isset($_GET['busqueda'])){
+                                  if($paginas >1){
+                                  for($x=1;$x<=$paginas;$x++){
+                                      echo ($x==$pagina) ? "<li class='page-item active'><a class='page-link' href='?pagina=$x&busqueda={$_GET['busqueda']}'>$x</a></li>" : "<li class='page-item'><a class='page-link' href='?pagina=$x&busqueda={$_GET['busqueda']}'>$x</a></li>";
+                                  }
+                                  
+                              }
+                              }else{
+                                  if($paginas >1){
+                                  for($x=1;$x<=$paginas;$x++){// recordar que paginas es el numero de ella que se necesitaran para mostrar los datos extraidos de la base de datos siendo que paginas resulta de la division de contador(el numero de registros id de los usuarios )entre datosporpagina(en nuestro caso 3) si llegaran por ejemplo 6 usuaios entre 3 serian 2 paginass
+                                      echo ($x==$pagina) ? "<li class='page-item active'><a class='page-link' href='?pagina=$x'>$x</a></li>" : "<li class='page-item'><a class='page-link' href='?pagina=$x'>$x</a></li>";
+                                  }
+                                  
+                              }
+                              }
+                              
+                            
+                                ?>
+                            <?php if(!($pagina==$paginas)):;?>
+                            <li class="page-item"><a class="page-link" href='<?php echo $pagSiguiente?>'>Siguiente</a></li>
+                            <?php endif;?>
+                            
+                          </ul>
+                        </nav>
                    </div>
                </div>
            </div>

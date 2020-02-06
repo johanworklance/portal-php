@@ -38,6 +38,9 @@ class Database{
     public function liberar(){
         $this->prep->free_result();//libera espacio en la memoria de la consulta, pero no se bien para que es
     }
+    public function filaAfectada(){
+        return $this->prep->affected_rows;//devuelve el numero de filas afectadas, si por ejemplo afecto 1, mandara 1
+    }
     
     public function validarDatos($columna, $tabla, $condicion){//este metodo lo usaremos para verificar que las busquedas a la base de datos sean correctas, es decir, si mostramos 3 registros, entonces validar datos mostrara el numero 3
         $this->resultado= $this->db->query("SELECT $columna FROM $tabla WHERE $columna = '$condicion'");//la condicion la ponemos entre comillas, por que en el sql, esta se espera como un string para comparar, entonces es recomendado usar las comillas dobles para la query entera, y asi usar las simples
