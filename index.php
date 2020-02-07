@@ -1,10 +1,10 @@
 <?php 
 session_start();
-if((isset($_SESSION['idUsuario']) && isset($_SESSION['nombre'])) || isset($_COOKIE['nombre'])){//como aun no hemos logeado no existe la sesion creada en el login, asi que con los isset verificamos si ya se definieron las variables de la super global SESSION
+if((isset($_SESSION['idUsuario']) && isset($_SESSION['nombre']) && isset($_SESSION['rol']))  || isset($_COOKIE['nombre'])){//como aun no hemos logeado no existe la sesion creada en el login, asi que con los isset verificamos si ya se definieron las variables de la super global SESSION
     if(isset($_COOKIE['nombre'])){
         $_SESSION['idUsuario']= $_COOKIE['id'];
         $_SESSION['nombre']= $_COOKIE['nombre'];
-        $_SESSION['imagen']= $_COOKIE['imagen'];
+        $_SESSION['rol']= $_COOKIE['rol'];
     }
        header("Location: admin.php");
    } 

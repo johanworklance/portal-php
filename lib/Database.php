@@ -30,7 +30,7 @@ class Database{
         return $this->prep;//para usarlo, como es protected, no podriamos usarlo fuera de la clase o sus hijos, ademas de que con el prep accederemos a la funcion bind_result
     }
     public function resultado(){
-        return $this->prep->fetch();//aqui con el metodo obtendremos el primer resultado de la consulta que consiga, si son varias usaremos un while
+        return $this->prep->fetch();//aqui con el metodo obtendremos el primer resultado de la consulta que consiga, si son varias usaremos un while, adema de que aqui es que ya vincula las variables del bind result con los datos 
     }
     public function cambiarDatabase($db){
         $this->db->select_db($db);

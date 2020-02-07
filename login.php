@@ -23,16 +23,24 @@ if($_POST){//verificamos que se envien cosas del formulario, es decir dar al bot
 
         if(preg_match($expReg,$email)){
             if($validarEmail!=0){//que sea distinto de 0, es decir, debe valer 1 asi sabremos que el email ya fue registrado previamente
-                $db->preparar("SELECT idUsuario,CONCAT (nombre,' ',apellido) AS nombreCompleto,email,contrasena,imagen FROM usuarios WHERE email='$email'");
+                $db->preparar("SELECT idUsuario,CONCAT (nombre,' ',apellido) AS nombreCompleto,email,contrasena,rol FROM usuarios WHERE email='$email'");
                 $db->ejecutar();
-                $db->prep()->bind_result($id,$dbnombreCompleto,$dbemail,$dbcontrasena,$rutaImagen);//indica que variables vincularemos a los resultados de la busquedad
+                $db->prep()->bind_result($id,$dbnombreCompleto,$dbemail,$dbcontrasena,$dbrol);//indica que variables vincularemos a los resultados de la busquedad
                 $db->resultado();//los vincula, y ahora ya esas variables tiene valores, como solo trae un resultado esta consulta, el fetch en el metodo resultado sera usado una vez,no haremos uso de un ciclo while
                 if($email==$dbemail){
-                    if($contrasena==$dbcontrasena){
+                    if(strlen($contrasena)>72){
+                        trigger_error("La contraseña es muy larga, por favor intente nuevamente.");//para evitar hackeos phpass recomienda hacer esta validacion ya que los hash superan ese numero de caracteres
+                        exit;
+                    }
+                    
+                    $hasher= new PasswordHash(8, FALSE);//estos son los parametros que pide la clase del phpass
+                    
+                
+                    if($hasher->CheckPassword($contrasena,$dbcontrasena)){
                         
                         $_SESSION['idUsuario']= $id;//usaremos estas variables en el admin.php
                         $_SESSION['nombre']=$dbnombreCompleto;
-                        $_SESSION['imagen']=$rutaImagen;
+                        $_SESSION['rol']=$dbrol;
                         
                         $caduca= time()+365*24*60*60;//durara un año
                         
@@ -40,7 +48,7 @@ if($_POST){//verificamos que se envien cosas del formulario, es decir dar al bot
                             
                             setcookie('id',$_SESSION['idUsuario'],$caduca);
                             setcookie('nombre',$_SESSION['nombre'],$caduca);
-                            setcookie('imagen',$_SESSION['imagen'],$caduca);
+                            setcookie('rol',$_SESSION['rol'],$caduca);
                             
                         }
                         

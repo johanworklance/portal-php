@@ -12,6 +12,10 @@ if(!$_SESSION['idUsuario'] && !$_SESSION['nombre']){
        header("Location: index.php");
        exit;
 } 
+ if($_SESSION['rol']=='registrado'){
+     header("Location: index.php");
+       exit;
+ }
 $db= new Database(DB_HOST,DB_USER,DB_PASS,DB_NAME);
 
 $fecha=getdate();

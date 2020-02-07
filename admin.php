@@ -7,7 +7,7 @@ spl_autoload_register(function($clase){
     require_once("lib/$clase.php");
 });
 
-if(!$_SESSION['idUsuario'] && !$_SESSION['nombre']){
+if(!$_SESSION['idUsuario'] && !$_SESSION['nombre'] && !$_SESSION['rol']){
        header("Location: index.php");
        exit;
 } 
@@ -21,14 +21,19 @@ $meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septi
 $dia2=$diaS[$fecha['wday']];
 $mes=$meses[$fecha['mon']-1];
 
-$db->preparar("SELECT CONCAT (nombre,' ',apellido) AS nombreCompleto,imagen FROM usuarios WHERE idUsuario= ? ");
+$db->preparar("SELECT CONCAT (nombre,' ',apellido) AS nombreCompleto,imagen,email,cedula,telefono,direccion,edad,ciudad,departamento,codigoPostal,fecha FROM usuarios WHERE idUsuario= ? ");
 $db->prep()->bind_param('i',$_SESSION['idUsuario']);
 $db->ejecutar();
-$db->prep()->bind_result($unombre,$uimagen);
+$db->prep()->bind_result($unombre,$uimagen,$uemail,$ucedula,$utelefono,$udireccion,$uedad,$uciudad,$udepartamento,$ucodigoPostal,$ufecha);
 $db->resultado();
 $db->liberar();//creo que se uso para liberar espacio para la siguiente consulta la de la linea de abajo, si no bota error
+$db->preparar("SELECT COUNT(idUsuario) FROM usuarios ");
+$db->ejecutar();
+$db->prep()->bind_result($contadorUsuarios);
+$db->resultado();
+$db->liberar();
 
-$db->preparar("SELECT CONCAT (nombre,' ',apellido) AS nombreCompleto,email,cedula,telefono,direccion,edad,ciudad,departamento,codigoPostal,fecha FROM usuarios ORDER BY fecha LIMIT 10");
+$db->preparar("SELECT CONCAT (nombre,' ',apellido) AS nombreCompleto,email,cedula,telefono,direccion,edad,ciudad,departamento,codigoPostal,fecha FROM usuarios ORDER BY fecha DESC LIMIT 10");
 $db->ejecutar();
 $db->prep()->bind_result($dbnombreCompleto,$dbemail,$dbcedula,$dbtelefono,$dbdireccion,$dbedad,$dbciudad,$dbdepartamento,$dbcodigoPostal,$dbfecha);
 
@@ -46,6 +51,7 @@ $db->prep()->bind_result($dbnombreCompleto,$dbemail,$dbcedula,$dbtelefono,$dbdir
     </div>
 </div>
 <div class="der">
+   <?php if($_SESSION['rol']=='administrador'):?>
     <div class="cabecera">
         <h1 class="titulo">
             Administración <small>Hola bienvenido a la administracion del portal</small>
@@ -59,18 +65,18 @@ $db->prep()->bind_result($dbnombreCompleto,$dbemail,$dbcedula,$dbtelefono,$dbdir
     <div class="container-fluid">
       <div class="row">
          
-          <div class="col-md-3">
+          <div class="col-md-3 col-centrar">
              <div class="panel">
                  <div class="icono bg-rojo">
                      <i class="fas fa-users"></i>
                  </div>
                  <div class="valor">
-                     <h1 class="cantidad">152</h1>
+                     <h1 class="cantidad"><?php echo $contadorUsuarios;?></h1>
                      <p>Usuarios</p>
                  </div>
              </div>
           </div>
-          <div class="col-md-3">
+          <!--<div class="col-md-3">
              <div class="panel">
                  <div class="icono bg-azul">
                      <i class="fas fa-users"></i>
@@ -102,7 +108,7 @@ $db->prep()->bind_result($dbnombreCompleto,$dbemail,$dbcedula,$dbtelefono,$dbdir
                      <p>Usuarios</p>
                  </div>
              </div>
-          </div>
+          </div>-->
           
       </div>
        <div class="row">
@@ -150,6 +156,7 @@ $db->prep()->bind_result($dbnombreCompleto,$dbemail,$dbcedula,$dbtelefono,$dbdir
                                         </tr>";
     
                                 }
+                              $db->liberar();//libero aqui por que solo apenas habiamos usado el fetch en el ciclo while que esta en el metodo resultado
                             ?>
                             
                           </tbody>
@@ -160,6 +167,73 @@ $db->prep()->bind_result($dbnombreCompleto,$dbemail,$dbcedula,$dbtelefono,$dbdir
            </div>
        </div>
    </div>
+   <?php else:?>
+           <div class="cabecera">
+        <h1 class="titulo">
+            Hola bienvenido al portal
+        </h1> 
+        <div class="fecha float-right">
+            <img src="img/calendar-fill.svg" alt="">
+            <span><?php echo "$mes $diaN, $anio - $dia2"?></span>
+        </div>
+        
+    </div>
+    <div class="container-fluid">
+      
+       <div class="row">
+           <div class="col-md-12">
+               <div class="caja">
+                   <div class="caja-cabecera">
+                       <h1>Tus datos</h1>
+                   </div>
+                   <hr>
+                   <div class="caja-cuerpo">
+                      <table class="table d-table-cell">
+                          <thead>
+                            <tr>
+                              
+                              <th>Nombre</th>
+                              <th>Email</th>
+                              <th>Cedula</th>
+                              <th>Telefono</th>
+                              <th>Direccion</th>
+                              <th>Edad</th>
+                              <th>Ciudad</th>
+                              <th>Departamento</th>
+                              <th>Codigo Postal</th>
+                              <th>Fecha</th>
+                              
+                            </tr>
+                          </thead>
+                          <tbody>
+                           <?php 
+                                
+                                    echo "<tr>
+                                          
+                                          <td>$unombre</td>
+                                          <td>$uemail</td>
+                                          <td>$ucedula</td>
+                                          <td>$utelefono</td>
+                                          <td>$udireccion</td>
+                                          <td>$uedad</td>
+                                          <td>$uciudad</td>
+                                            <td>$udepartamento</td>
+                                            <td>$ucodigoPostal</td>
+                                            <td>".date("d/m/Y",$ufecha)."</td>
+                                        </tr>";
+    
+                                
+                            ?>
+                            
+                          </tbody>
+                        </table>
+                       
+                   </div>
+               </div>
+           </div>
+       </div>
+   </div>
+   <?php endif;?>
 </div>
 
    

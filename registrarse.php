@@ -8,7 +8,7 @@
                require_once "lib/config.php";//lo ponemos aqui, por que sera en registrarse donde crearemos una de la instancias a database
                require 'lib/errores.php';
                 require 'lib/validarFoto.php'; 
-               spl_autoload_register(function($clase){//usamos el autocargador de clases, dentro le dejamos una funcion que cogera cualquier instancia de clase como un valor para la estructura que dejemos dentro en este caso el "lib/Database.php"
+               spl_autoload_register(function($clase){//usamos el autocargador de clases, dentro le dejamos una funcion que cogera cualquier instancia de clase como un valor para la estructura que dejemos dentro en este caso el "lib/Database.php" asi no requeriremos usar require y los archivos de las clases
                    require_once("lib/$clase.php");//require once es para que si ya esta cargado un fichero, no lo haga de nuevo
                });
 
@@ -25,11 +25,14 @@
                         
                             
                          
-                        if($nombre && $email && $contrasena && $confirContrasena){
+                        if($nombre && $email && $contrasena && $confirContrasena && $cedula){
                             $db= new Database(DB_HOST,DB_USER,DB_PASS,DB_NAME);
                             $expReg= '/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$/';//que empieze como minimo con algun caracter que esta el primer corchete, el segundo puede haber un punto y el corchete de adentro o no estar, despues el aroba @, tras el cualquie cosa dentro del rango del tercer corchete, despues cualquier cosa y finalmente un punto y como minomo 2 letras
                             if(preg_match($expReg,$email)){
                                 if(strlen($contrasena)>=6){
+                                    
+                                    
+                                    
                                     if($contrasena==$confirContrasena){
                                     
                                         $validarEmail= $db->validarDatos("email","usuarios",$email);
@@ -38,10 +41,12 @@
                                             $validarCedula= $db->validarDatos("cedula","usuarios",$cedula);
                                             
                                             if($validarCedula==0){
+                                                $hasher= new PasswordHash(8, FALSE);//estos son los parametros que pide la clase del phpass
+                                    $hashContra= $hasher->HashPassword($contrasena);//con este metodo de la clase del phpass creamos el hash para la contraseña mandada en el formulario de registro
                                                 if(validarFoto($nombre)){
                             //echo"<img src='$rutaSubida' class='img-fluid' alt=''>";aqui mostramos la imagen que se guardo en la carpeta fotos con el nombre profile.jpg
                                                     $fechaRegistro=time();//devuelve la fecha en formato unix,es decir los segundos transcurridos desde 1970
-                                              if($db->preparar("INSERT INTO usuarios VALUES (NULL, '$nombre', '$apellido', '$email', '$contrasena', '$cedula', '$telefono', '$direccion', '$edad', '$ciudad', '$departamento', '$codigoPostal','$rutaSubida','$fechaRegistro')")){
+                                              if($db->preparar("INSERT INTO usuarios VALUES (NULL, '$nombre', '$apellido', '$email', '$hashContra', '$cedula', '$telefono', '$direccion', '$edad', '$ciudad', '$departamento', '$codigoPostal','$rutaSubida','$fechaRegistro','registrado')")){
                                                   $db->ejecutar();
                                                   trigger_error("Te has registrado perfectamente.", E_USER_NOTICE);
                                                   $ok=true;
@@ -69,7 +74,7 @@
                                 trigger_error("Por favor introduce un email válido.", E_USER_ERROR);
                             }
                         }else{
-                            trigger_error("De este formulario minimo se necesita llenar: nombre, correo, la contraseña y su confirmacion, y subir una imagen.", E_USER_ERROR);
+                            trigger_error("De este formulario minimo se necesita llenar: nombre, correo, la contraseña y su confirmacion, cedula y subir una imagen.", E_USER_ERROR);
                         }
                     }
               
