@@ -9,15 +9,23 @@ if((isset($_SESSION['idUsuario']) && isset($_SESSION['nombre']) && isset($_SESSI
        header("Location: admin.php");
    } 
 require "inc/header.inc"; ?>
-   <div class="container-fluid">
+   <div class="container-fluid" style="padding:150px">
       <div class="row">
           <div class="col-md-12 text-center mt-5">
               <h2>Portal Web</h2>
           </div>
       </div>
        <div class="row">
+          <div class='alerta alerta-error'>
+                <div class='alerta-icon'>
+                    <img src='img/alert-triangle.svg' style='width:100%' alt=''>
+                </div>
+                <div class="alerta_wrapper"></div>
+            </div>
+          
+          
            <div class="col-md-6 col-centrar caja">
-               <form action="login.php" method="post" role="form">
+               <form id="formu">
                  <h2 class="text-center">Login</h2>
                  
                   <div class="form-group row">
@@ -32,7 +40,7 @@ require "inc/header.inc"; ?>
                   </div>
                   <div class="form-group row">
                       <div class="col-md-7 col-centrar">
-                        <button type="submit" class="btn btn-primary">Ingresar</button>
+                        <button id="boton" type="button" class="btn btn-primary">Ingresar</button>
                         <button type="reset" class="btn btn-secondary">Limpiar</button>
                         <a href="registrarse.php" class="col-md-1">Registrarse</a><!--buscar despues como hacer que se vaya a la izquierda en bs4 que los pull no me funcionan-->
                         <br>
@@ -44,6 +52,7 @@ require "inc/header.inc"; ?>
                    </div>
 
                 </form>
+                <img class="cargador" src="img/cargador.gif" alt="">
            </div>
        </div>
    </div>

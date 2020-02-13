@@ -136,51 +136,7 @@ $db->liberar();//creo que se uso para liberar espacio para la siguiente consulta
                 </form>
           </div>
       </div>
-      <?php elseif(isset($_GET['confirEliminar']))://originalmente solo ponia que si habia valor confiEliminar en el metodo get, pero me mandaba erroe de undefined index, asi que use el isset?>
-      <div class="row">
-          <div class="col-5 col-centrar">
-          <div class="caja text-center">
-              <h2>¿Seguro desear eliminar a este usuario?</h2>
-              <a class="btn btn-danger" href='<?php echo "editar.php?eliminar={$_GET['confirEliminar']}";?>'>Si</a>
-              <a class="btn btn-info" href='editar.php'>No</a>
-          </div> 
-          </div>
-      </div>
-      <?php elseif(isset($_GET['eliminar']))://originalmente solo ponia que si habia valor confiEliminar en el metodo get, pero me mandaba erroe de undefined index, asi que use el isset?>
-      <div class="row">
-          <div class="col-5 col-centrar">
-          <div class="caja text-center">
-             
-              <?php 
-              $eliminar= $_GET['eliminar'];
-              
-              
-              
-                    $db->preparar("SELECT nombre FROM usuarios WHERE idUsuario= ? ");
-              
-                    $db->prep()->bind_param('i',$eliminar);
-                    $db->ejecutar();
-                    $db->prep()->bind_result($name);
-                    $db->resultado();
-                    $db->liberar();
-              
-              
-              
-              $db->preparar("DELETE FROM usuarios WHERE idUsuario= ? ");
-              
-                    $db->prep()->bind_param('i',$eliminar);
-                    $db->ejecutar();
-              
-                    if($db->filaAfectada()>0){
-                        header("Refresh:5; url=editar.php");
-                        echo "<h4>Eliminacion completada completada, seras redirrecionado en 5 s, {$db->filaAfectada()} registro afectado. </h4>";
-                        borrarCarpetas("fotos/$name",true);//borramos la carpeta de la foto del usuario
-                    }
-                    $db->liberar();
-              ?>
-          </div> 
-          </div>
-      </div>
+      
       <?php else:?>
        <div class="row">
            <div class="col-md-12">
@@ -295,7 +251,7 @@ $db->liberar();//creo que se uso para liberar espacio para la siguiente consulta
                                 $conteo=$iniciar;
                                 while($db->resultado()){
                                     $conteo++;
-                                    echo "<tr>
+                                    echo "<tr data-id='$dbid'>
                                           <td>$conteo</td>
                                           <td>$dbnombreCompleto</td>
                                           <td>$dbemail</td>
@@ -307,8 +263,8 @@ $db->liberar();//creo que se uso para liberar espacio para la siguiente consulta
                                             <td>$dbdepartamento</td>
                                             <td>$dbcodigoPostal</td>
                                             <td>".date("d/m/Y",$dbfecha)."</td>
-                                            <td style='padding:0!important;' class='text-center'><a class='btn btn-success acciones' href='editar.php?editar=$dbid'><i class='fas fa-edit'></i></a>
-                                            <a class='btn btn-danger acciones' href='editar.php?confirEliminar=$dbid'><i class='fas fa-trash-alt'></i></a></td>
+                                            <td style='padding:0!important;' class='text-center'><a class='btn btn-success acciones' href='#' data-toggle='tooltip' title='Editar'><i class='fas fa-edit'></i></a>
+                                            <a id='accionEliminar' class='btn btn-danger acciones' href='#' data-toggle='tooltip' title='Eliminar'><i class='fas fa-trash-alt'></i></a></td>
                                             
                                             
                                         </tr>";//cpn el editar.php?editar = a algo enviamos datos por el metodo get
@@ -319,6 +275,27 @@ $db->liberar();//creo que se uso para liberar espacio para la siguiente consulta
                             
                           </tbody>
                         </table>
+                        <div id="caja-modal" class="modal fade bd-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+                          <div class="modal-dialog modal-sm">
+                            <div class="modal-content p-4">
+                              <div class="row">
+                                  <div class="col-12">
+                                      ¿Seguro desea eliminar a este usuario?
+                                  </div>
+                              </div>
+                              <br>
+                              <br>
+                              <div class="row">
+                                  <div class="col-6" style="justify-content: flex-start; display:flex">
+                                      <button id="si" class="btn btn-danger ml-auto">Si</button>
+                                  </div>
+                                  <div class="col-6">
+                                      <button id="no" class="btn btn-info">No</button>
+                                  </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                        <?php
                        $anterior=($pagina-1);
                        $siguiente=($pagina+1);

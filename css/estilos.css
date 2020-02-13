@@ -147,12 +147,19 @@ header .logo:hover{
     box-shadow: none;
     
 }
+.cargador{
+    display: none;
+}
 
 .alerta {
+    display: none;
+    width: 50%;
     margin-bottom: 30px;
     padding: 40px 55px 20px 90px !important;
-    position: relative;
+    position: absolute;
     border-radius: 5px;
+    top: 100px;
+    left: 25%;
 }
 .alerta .alerta-icon {
     width: 60px;
