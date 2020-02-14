@@ -33,9 +33,9 @@ $db->prep()->bind_result($contadorUsuarios);
 $db->resultado();
 $db->liberar();
 
-$db->preparar("SELECT CONCAT (nombre,' ',apellido) AS nombreCompleto,email,cedula,telefono,direccion,edad,ciudad,departamento,codigoPostal,fecha FROM usuarios ORDER BY fecha DESC LIMIT 10");
+$db->preparar("SELECT CONCAT (nombre,' ',apellido) AS nombreCompleto,email,cedula,telefono,direccion,edad,ciudad,departamento,codigoPostal,fecha,rol FROM usuarios ORDER BY fecha DESC LIMIT 10");
 $db->ejecutar();
-$db->prep()->bind_result($dbnombreCompleto,$dbemail,$dbcedula,$dbtelefono,$dbdireccion,$dbedad,$dbciudad,$dbdepartamento,$dbcodigoPostal,$dbfecha);
+$db->prep()->bind_result($dbnombreCompleto,$dbemail,$dbcedula,$dbtelefono,$dbdireccion,$dbedad,$dbciudad,$dbdepartamento,$dbcodigoPostal,$dbfecha,$dbrol);
 
 
 
@@ -140,6 +140,9 @@ $db->prep()->bind_result($dbnombreCompleto,$dbemail,$dbcedula,$dbtelefono,$dbdir
                            <?php 
                                 $conteo=0;
                                 while($db->resultado()){
+                                  if($dbrol=='administrador'){
+                                    continue;
+                                  }
                                     $conteo++;
                                     echo "<tr>
                                           <td>$conteo</td>
