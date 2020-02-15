@@ -177,7 +177,7 @@ $db->liberar();//creo que se uso para liberar espacio para la siguiente consulta
                                       trigger_error("No puedes dejar vacio el campo de busqueda.",E_USER_ERROR);
                                       exit;
                                   }
-                                  $consulta="SELECT idUsuario,CONCAT (nombre,' ',apellido) AS nombreCompleto,email,cedula,telefono,direccion,edad,ciudad,departamento,codigoPostal,fecha FROM usuarios WHERE nombre LIKE";
+                                  $consulta="SELECT idUsuario,CONCAT (nombre,' ',apellido) AS nombreCompleto,email,cedula,telefono,direccion,edad,ciudad,departamento,codigoPostal,fecha,rol FROM usuarios WHERE nombre LIKE";
                                   
                                   $busqueda= explode(" ",$_GET['busqueda']);
                                  
@@ -227,7 +227,7 @@ $db->liberar();//creo que se uso para liberar espacio para la siguiente consulta
 
                                           $iniciar= ($pagina-1)*$datosPorPagina;
 
-                                          $consulta="SELECT idUsuario,CONCAT (nombre,' ',apellido) AS nombreCompleto,email,cedula,telefono,direccion,edad,ciudad,departamento,codigoPostal,fecha FROM usuarios ORDER BY fecha LIMIT $iniciar,$datosPorPagina";
+                                          $consulta="SELECT idUsuario,CONCAT (nombre,' ',apellido) AS nombreCompleto,email,cedula,telefono,direccion,edad,ciudad,departamento,codigoPostal,fecha,rol FROM usuarios ORDER BY fecha LIMIT $iniciar,$datosPorPagina";
                                   }
                               
                               
@@ -237,7 +237,7 @@ $db->liberar();//creo que se uso para liberar espacio para la siguiente consulta
                               
                               $db->preparar($consulta);
                                 $db->ejecutar();
-                                $db->prep()->bind_result($dbid,$dbnombreCompleto,$dbemail,$dbcedula,$dbtelefono,$dbdireccion,$dbedad,$dbciudad,$dbdepartamento,$dbcodigoPostal,$dbfecha);
+                                $db->prep()->bind_result($dbid,$dbnombreCompleto,$dbemail,$dbcedula,$dbtelefono,$dbdireccion,$dbedad,$dbciudad,$dbdepartamento,$dbcodigoPostal,$dbfecha,$dbrol);
                               
                               
                               if(isset($_GET['busqueda'])){
@@ -250,6 +250,9 @@ $db->liberar();//creo que se uso para liberar espacio para la siguiente consulta
                               
                                 $conteo=$iniciar;
                                 while($db->resultado()){
+                                  if($dbrol=='administrador'){
+                                    continue;
+                                  }
                                     $conteo++;
                                     echo "<tr data-id='$dbid'>
                                           <td>$conteo</td>
@@ -263,7 +266,7 @@ $db->liberar();//creo que se uso para liberar espacio para la siguiente consulta
                                             <td>$dbdepartamento</td>
                                             <td>$dbcodigoPostal</td>
                                             <td>".date("d/m/Y",$dbfecha)."</td>
-                                            <td style='padding:0!important;' class='text-center'><a class='btn btn-success acciones' href='#' data-toggle='tooltip' title='Editar'><i class='fas fa-edit'></i></a>
+                                            <td style='padding:0!important;' class='text-center'><a class='btn btn-success acciones' href='editar.php?editar=$dbid' data-toggle='tooltip' title='Editar'><i class='fas fa-edit'></i></a>
                                             <a id='accionEliminar' class='btn btn-danger acciones' href='#' data-toggle='tooltip' title='Eliminar'><i class='fas fa-trash-alt'></i></a></td>
                                             
                                             
